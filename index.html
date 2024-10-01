@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Léxico y Sintáctico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+        }
+        textarea {
+            width: 400px;
+            height: 400px;
+            margin-right: 20px;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            height: 400px;
+            overflow-y: auto;
+        }
+        button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Analizador Léxico y Sintáctico</h1>
+        <textarea id="code" name="code" placeholder="Escribe tu código aquí..."></textarea>
+    </div>
+    <div style="margin-left: 20px;">
+        <h2>Análisis Léxico</h2>
+        <pre id="lexical-analysis"></pre>
+
+        <h2>Análisis Sintáctico</h2>
+        <pre id="syntactic-analysis"></pre>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="analyze()">Analizar</button>
+        <button onclick="clearText()">Limpiar</button>
+    </div>
+
+    <script>
+        const palabrasReservadas = ["int", "main"];
+        const simbolos = {
+            "(": "<Paréntesis de apertura>",
+            ")": "<Paréntesis de cierre>",
+            "{": "<Llave de apertura>",
+            "}": "<Llave de cierre>",
+            ";": "<Punto y coma>"
+        };
+
+        function analyze() {
+            const code = document.getElementById('code').value.trim();
+            lexicalAnalysis(code);
+            syntacticAnalysis(code);
+        }
+
+        function lexicalAnalysis(code) {
+            const lines = code.split('\n');
+            let analysisResult = "";
+
+            for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+                const tokens = separateTokens(lines[lineNum]);
+                analysisResult += `LÍNEA ${lineNum + 1}\n`;
+                tokens.forEach(token => {
+                    const classification = classifyToken(token);
+                    analysisResult += `${classification}: ${token}\n`;
+                });
+                analysisResult += "\n";
+            }
+
+            document.getElementById('lexical-analysis').innerText = analysisResult;
+        }
+
+        function separateTokens(line) {
+            for (let simbolo in simbolos) {
+                line = line.replace(new RegExp(`\\${simbolo}`, 'g'), ` ${simbolo} `);
+            }
+            return line.split(/\s+/).filter(token => token);
+        }
+
+        function classifyToken(token) {
+            if (palabrasReservadas.includes(token)) {
+                return token === "int" ? "<Tipo de dato>" : "<Reservada main>";
+            } else if (token in simbolos) {
+                return simbolos[token];
+            } else if (/^\w+$/.test(token)) {
+                return "<Identificador>";
+            } else if (/^\d+$/.test(token)) {
+                return "<Número>";
+            }
+            return "<Desconocido>";
+        }
+
+        function syntacticAnalysis(code) {
+            const lines = code.split('\n');
+            let result = "ANÁLISIS SINTÁCTICO\n";
+            let hasMain = false;
+            let hasIntDeclaration = false;
+
+            // Revisar si hay una declaración de main y una declaración int
+            for (const line of lines) {
+                if (line.includes("int main")) {
+                    hasMain = true;
+                }
+                if (line.trim().startsWith("int ") && line.trim().endsWith(";")) {
+                    hasIntDeclaration = true;
+                }
+            }
+
+            // Comprobaciones
+            if (hasMain && hasIntDeclaration) {
+                result += "El código está correcto.";
+            } else {
+                result += "Error de sintaxis. Se esperaba una declaración de 'int' y una función 'main'.";
+            }
+
+            document.getElementById('syntactic-analysis').innerText = result;
+        }
+
+        function clearText() {
+            document.getElementById('code').value = '';
+            document.getElementById('lexical-analysis').innerText = '';
+            document.getElementById('syntactic-analysis').innerText = '';
+        }
+    </script>
+</body>
+</html>
